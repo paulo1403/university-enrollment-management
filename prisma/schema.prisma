@@ -1,0 +1,203 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String   @id @default(uuid())
+  email            String   @unique
+  password         String
+  name             String?
+  role             UserRole
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret  String?
+
+  student        Student?
+  professor      Professor?
+  admin          Admin?
+  enrollments    CourseEnrollment[]
+  auditLogs      AuditLog[]
+  studentAccount StudentAccount?
+}
+
+enum UserRole {
+  STUDENT
+  PROFESSOR
+  ADMIN
+}
+
+model Student {
+  userId         String          @id @unique
+  user           User            @relation(fields: [userId], references: [id])
+  studentIdNum   String?         @unique
+  major          String?
+  enrollmentDate DateTime        @default(now())
+  studentAccount StudentAccount?
+}
+
+model Professor {
+  userId         String   @id @unique
+  user           User     @relation(fields: [userId], references: [id])
+  department     String?
+  officeLocation String?
+  courses        Course[]
+}
+
+model Admin {
+  userId      String  @id @unique
+  user        User    @relation(fields: [userId], references: [id])
+  permissions String?
+}
+
+model Campus {
+  id       String   @id @default(uuid())
+  name     String   @unique
+  address  String?
+  city     String?
+  district String?
+  phone    String?
+  email    String?
+  courses  Course[]
+  rooms    Room[]
+}
+
+model Course {
+  id                  String               @id @default(uuid())
+  code                String               @unique
+  name                String
+  description         String?
+  credits             Int
+  capacity            Int
+  professorId         String?
+  professor           Professor?           @relation(fields: [professorId], references: [userId])
+  campusId            String
+  campus              Campus               @relation(fields: [campusId], references: [id])
+  modality            CourseModality       @default(PRESENCIAL)
+  academicPeriodId    String
+  academicPeriod      AcademicPeriod       @relation(fields: [academicPeriodId], references: [id])
+  enrollments         CourseEnrollment[]
+  classTimes          ClassTime[]
+  coursePrerequisites CoursePrerequisite[] @relation("Course")
+  prerequisiteFor     CoursePrerequisite[] @relation("Prerequisite")
+}
+
+enum CourseModality {
+  PRESENCIAL
+  VIRTUAL
+}
+
+model CourseEnrollment {
+  id               String         @id @default(uuid())
+  userId           String
+  courseId         String
+  enrollDate       DateTime       @default(now())
+  user             User           @relation(fields: [userId], references: [id])
+  course           Course         @relation(fields: [courseId], references: [id])
+  grades           Grade[]
+  academicPeriodId String
+  academicPeriod   AcademicPeriod @relation(fields: [academicPeriodId], references: [id])
+
+  @@unique([userId, courseId, academicPeriodId])
+  @@map("enrollments")
+}
+
+model CoursePrerequisite {
+  courseId       String
+  prerequisiteId String
+  course         Course @relation("Course", fields: [courseId], references: [id])
+  prerequisite   Course @relation("Prerequisite", fields: [prerequisiteId], references: [id])
+
+  @@id([courseId, prerequisiteId])
+  @@map("course_prerequisites")
+}
+
+model ClassTime {
+  id        String   @id @default(uuid())
+  courseId  String
+  day       String
+  startTime DateTime
+  endTime   DateTime
+  course    Course   @relation(fields: [courseId], references: [id])
+  roomId    String?
+  room      Room?    @relation(fields: [roomId], references: [id])
+}
+
+model Room {
+  id         String      @id @default(uuid())
+  campusId   String
+  campus     Campus      @relation(fields: [campusId], references: [id])
+  name       String
+  capacity   Int?
+  classTimes ClassTime[]
+}
+
+model Grade {
+  id           String           @id @default(uuid())
+  enrollmentId String
+  enrollment   CourseEnrollment @relation(fields: [enrollmentId], references: [id])
+  gradeValue   Float // Changed from Decimal to Float for SQLite compatibility
+  gradeDate    DateTime         @default(now())
+  status       GradeStatus
+}
+
+enum GradeStatus {
+  APPROVED
+  FAILED
+  PENDING
+}
+
+model StudentAccount {
+  id       String    @id @default(uuid())
+  userId   String    @unique
+  student  Student   @relation(fields: [userId], references: [userId])
+  user     User      @relation(fields: [userId], references: [id])
+  balance  Float     @default(0)
+  payments Payment[]
+}
+
+model Payment {
+  id               String         @id @default(uuid())
+  studentAccountId String
+  studentAccount   StudentAccount @relation(fields: [studentAccountId], references: [id])
+  amount           Float
+  paymentDate      DateTime       @default(now())
+  method           String
+}
+
+model Fee {
+  id     String @id @default(uuid())
+  name   String
+  amount Float
+}
+
+model AcademicPeriod {
+  id               String             @id @default(uuid())
+  name             String
+  startDate        DateTime
+  endDate          DateTime
+  isEnrollmentOpen Boolean            @default(false)
+  courses          Course[]
+  enrollments      CourseEnrollment[]
+}
+
+model Setting {
+  key   String @id
+  value String
+  type  String
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  action     String
+  entityType String
+  entityId   String
+  oldValue   Json?
+  newValue   Json?
+  timestamp  DateTime @default(now())
+}
