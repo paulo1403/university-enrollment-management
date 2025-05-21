@@ -34,10 +34,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ twoFactorRequired: true, email: user.email });
   }
 
-  const token = signJwt({ id: user.id, email: user.email, role: user.role });
+  const token = signJwt({
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name || 'Usuario',
+  });
   return NextResponse.json({
     success: true,
     token,
-    user: { id: user.id, email: user.email, role: user.role },
+    user: {
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      name: user.name || 'Usuario',
+    },
   });
 }
