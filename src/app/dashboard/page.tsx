@@ -1,33 +1,12 @@
-'use client';
-import { AppSidebar } from '@/components/app-sidebar';
 import { ChartAreaInteractive } from '@/components/chart-area-interactive';
 import { DataTable } from '@/components/data-table';
 import { SectionCards } from '@/components/section-cards';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
-import data from '../data.json';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
-export default function AdminDashboard() {
-  const router = useRouter();
+import data from './data.json';
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      router.replace('/login');
-    } else {
-      try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        if (payload.role !== 'ADMIN') {
-          router.replace('/login');
-        }
-      } catch {
-        router.replace('/login');
-      }
-    }
-  }, [router]);
-
+export default function Page() {
   return (
     <SidebarProvider
       style={
@@ -37,7 +16,6 @@ export default function AdminDashboard() {
         } as React.CSSProperties
       }
     >
-      <AppSidebar variant='inset' />
       <SidebarInset>
         <SiteHeader />
         <div className='flex flex-1 flex-col'>

@@ -141,6 +141,15 @@ export default function LoginPage() {
             <Button type='submit' className='w-full' disabled={loading}>
               {loading ? 'Cargando...' : 'Entrar'}
             </Button>
+            <Button
+              type='button'
+              variant='link'
+              className='w-full mt-2 text-sm text-center text-primary underline hover:no-underline'
+              onClick={() => (window.location.href = '/forgot-password')}
+              tabIndex={0}
+            >
+              ¿Olvidaste tu contraseña?
+            </Button>
           </form>
         ) : (
           <form onSubmit={handleSubmit2FA(on2FA)} className='space-y-4'>

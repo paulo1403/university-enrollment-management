@@ -8,13 +8,15 @@ datasource db {
 }
 
 model User {
-  id               String   @id @default(uuid())
-  email            String   @unique
-  password         String
-  name             String?
-  role             UserRole
-  twoFactorEnabled Boolean  @default(false)
-  twoFactorSecret  String?
+  id                   String    @id @default(uuid())
+  email                String    @unique
+  password             String
+  name                 String?
+  role                 UserRole
+  twoFactorEnabled     Boolean   @default(false)
+  twoFactorSecret      String?
+  passwordResetToken   String?
+  passwordResetExpires DateTime?
 
   student        Student?
   professor      Professor?
