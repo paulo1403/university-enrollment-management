@@ -7,12 +7,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, twoFASchema } from '@/schemas/auth';
 import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { Eye, EyeOff } from 'lucide-react';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [twoFactor, setTwoFactor] = useState(false);
   const [pendingEmail, setPendingEmail] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -105,11 +107,31 @@ export default function LoginPage() {
               )}
             </div>
             <div>
-              <label className='block mb-1 font-medium'>Contraseña</label>
-              <Input
-                type='password'
-                {...register('password', { required: 'Contraseña requerida' })}
-              />
+              <label htmlFor='password' className='block mb-1 font-medium'>
+                Contraseña
+              </label>
+              <div className='relative'>
+                <Input
+                  id='password'
+                  type={showPassword ? 'text' : 'password'}
+                  aria-label='Contraseña'
+                  autoComplete='current-password'
+                  {...register('password', {
+                    required: 'Contraseña requerida',
+                  })}
+                />
+                <button
+                  type='button'
+                  tabIndex={0}
+                  aria-label={
+                    showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
+                  }
+                  onClick={() => setShowPassword((v) => !v)}
+                  className='absolute right-2 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded'
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
               {errors.password && (
                 <span className='text-xs text-red-500'>
                   {errors.password.message as string}

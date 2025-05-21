@@ -32,7 +32,7 @@ export function ThemeToggle() {
       type='button'
       aria-label='Cambiar tema'
       onClick={toggleTheme}
-      className='absolute top-4 right-4 p-2 rounded-full bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground transition-colors'
+      className='absolute top-4 right-4 p-2 rounded-full bg-secondary text-secondary-foreground hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer'
     >
       {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
     </button>
