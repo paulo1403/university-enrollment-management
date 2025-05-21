@@ -1,12 +1,18 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient, UserRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { verifyJwt } from '@/lib/jwt';
 
 const prisma = new PrismaClient();
 
 async function isAdmin(req: Request) {
-  const role = req.headers.get('x-user-role');
-  return role === 'ADMIN';
+  const authHeader = req.headers.get('authorization');
+  const token = authHeader?.replace('Bearer ', '');
+  const payload = token ? verifyJwt(token) : null;
+  if (payload && typeof payload === 'object' && 'role' in payload) {
+    return payload.role === 'ADMIN';
+  }
+  return false;
 }
 
 export async function POST(req: Request) {

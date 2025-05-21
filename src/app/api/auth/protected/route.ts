@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import { getServerSession } from 'next-auth';
+import { verifyJwt } from '@/lib/jwt';
 
 const prisma = new PrismaClient();
 
 export async function GET(req: Request) {
-  const session = await getServerSession();
-  if (!session) {
+  const authHeader = req.headers.get('authorization');
+  const token = authHeader?.replace('Bearer ', '');
+  const payload = token ? verifyJwt(token) : null;
+  if (!payload) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  return NextResponse.json({ message: 'Authenticated!', user: session.user });
+  return NextResponse.json({ message: 'Authenticated!', user: payload });
 }

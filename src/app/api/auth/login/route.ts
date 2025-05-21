@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { signJwt } from '@/lib/jwt';
 
 const prisma = new PrismaClient();
 
@@ -33,8 +34,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ twoFactorRequired: true, email: user.email });
   }
 
+  const token = signJwt({ id: user.id, email: user.email, role: user.role });
   return NextResponse.json({
     success: true,
+    token,
     user: { id: user.id, email: user.email, role: user.role },
   });
 }
