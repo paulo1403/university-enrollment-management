@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, twoFASchema } from '@/schemas/auth';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -82,6 +83,7 @@ export default function LoginPage() {
 
   return (
     <div className='min-h-screen flex items-center justify-center bg-background px-4'>
+      <ThemeToggle />
       <div className='w-full max-w-md bg-card shadow-lg rounded-xl p-8 dark:bg-zinc-900'>
         <h1 className='text-2xl font-bold mb-6 text-center text-primary'>
           Iniciar sesión
