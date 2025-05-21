@@ -69,7 +69,7 @@ Before you begin, ensure you have the following installed:
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/your-username/university-enrollment-management.git](https://github.com/your-username/university-enrollment-management.git)
+    git clone https://github.com/paulo1403/university-enrollment-management
     cd university-enrollment-management
     ```
 
