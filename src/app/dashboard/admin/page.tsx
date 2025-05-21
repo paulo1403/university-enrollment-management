@@ -7,6 +7,7 @@ import { SiteHeader } from '@/components/site-header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { UserManagement } from '@/components/admin/user-management';
 import { AuditLogViewer } from '@/components/admin/audit-log-viewer';
+import { CourseManagement } from '@/components/admin/course-management';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import data from '../data.json';
 import { useEffect } from 'react';
@@ -49,9 +50,10 @@ export default function AdminDashboard() {
               {' '}
               <div className='px-4 lg:px-6'>
                 <Tabs defaultValue='dashboard' className='w-full'>
-                  <TabsList className='grid w-full grid-cols-3'>
+                  <TabsList className='grid w-full grid-cols-4'>
                     <TabsTrigger value='dashboard'>Dashboard</TabsTrigger>
                     <TabsTrigger value='users'>Usuarios</TabsTrigger>
+                    <TabsTrigger value='courses'>Cursos</TabsTrigger>
                     <TabsTrigger value='audit'>Auditoría</TabsTrigger>
                   </TabsList>
                   <TabsContent value='dashboard' className='pt-4'>
@@ -62,9 +64,12 @@ export default function AdminDashboard() {
                     <div className='mt-6'>
                       <DataTable data={data} />
                     </div>
-                  </TabsContent>
+                  </TabsContent>{' '}
                   <TabsContent value='users' className='pt-4'>
                     <UserManagement />
+                  </TabsContent>
+                  <TabsContent value='courses' className='pt-4'>
+                    <CourseManagement />
                   </TabsContent>
                   <TabsContent value='audit' className='pt-4'>
                     <AuditLogViewer />
