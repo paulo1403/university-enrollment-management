@@ -42,7 +42,7 @@ export async function GET(req: Request) {
   if (role && ['STUDENT', 'PROFESSOR', 'ADMIN'].includes(role)) {
     where.role = role;
   }
-  // Si el role no es válido, no filtrar por rol (ignorar)
+
   if (search) {
     where.OR = [
       { name: { contains: search } },

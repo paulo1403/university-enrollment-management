@@ -29,25 +29,73 @@ export async function GET(req: Request) {
     );
   }
 
-  const courses = await prisma.course.findMany({
-    include: {
-      professor: {
-        include: {
-          user: {
-            select: {
-              name: true,
-              email: true,
+  const { searchParams } = new URL(req.url);
+  const search = searchParams.get('search');
+  const modality = searchParams.get('modality');
+  const campusId = searchParams.get('campusId');
+  const academicPeriodId = searchParams.get('academicPeriodId');
+  const professorId = searchParams.get('professorId');
+  const page = parseInt(searchParams.get('page') || '1', 10);
+  const pageSize = Math.min(
+    parseInt(searchParams.get('pageSize') || '50', 10),
+    200
+  );
+
+  let where: any = {};
+  if (search) {
+    where.OR = [{ code: { contains: search } }, { name: { contains: search } }];
+  }
+  if (modality && ['PRESENCIAL', 'VIRTUAL'].includes(modality)) {
+    where.modality = modality;
+  }
+  if (campusId) {
+    where.campusId = campusId;
+  }
+  if (academicPeriodId) {
+    where.academicPeriodId = academicPeriodId;
+  }  if (professorId) {
+    where.courseProfessors = {
+      some: {
+        professorId: professorId
+      }
+    };
+  }
+
+  const [courses, total] = await Promise.all([
+    prisma.course.findMany({
+      where,
+      include: {
+        courseProfessors: {
+          include: {
+            professor: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
             },
           },
         },
+        campus: true,
+        academicPeriod: true,
       },
-      campus: true,
-      academicPeriod: true,
-    },
-    orderBy: { code: 'asc' },
-  });
+      orderBy: { code: 'asc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.course.count({ where }),
+  ]);
 
-  return NextResponse.json({ courses });
+  return NextResponse.json({
+    courses,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
+  });
 }
 
 // POST: Create a new course (admins only)
@@ -66,7 +114,7 @@ export async function POST(req: Request) {
     description,
     credits,
     capacity,
-    professorId,
+    professorIds,
     campusId,
     modality,
     academicPeriodId,
