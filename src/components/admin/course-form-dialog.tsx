@@ -320,8 +320,10 @@ export function CourseFormDialog({
                   <FormItem>
                     <FormLabel>Profesor</FormLabel>
                     <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value || ''}
+                      onValueChange={(value) =>
+                        field.onChange(value === 'none' ? null : value)
+                      }
+                      defaultValue={field.value || 'none'}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -329,7 +331,7 @@ export function CourseFormDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value=''>Sin asignar</SelectItem>
+                        <SelectItem value='none'>Sin asignar</SelectItem>
                         {professors.map((professor) => (
                           <SelectItem
                             key={professor.userId}

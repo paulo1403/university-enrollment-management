@@ -153,13 +153,18 @@ export function UserFormDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={form.handleSubmit(handleSubmit)} className='space-y-4'>
+        <form
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className='space-y-4'
+          autoComplete='off'
+        >
           <div className='grid w-full items-center gap-1.5'>
             <Label htmlFor='email'>Email</Label>
             <Input
               id='email'
               type='email'
               placeholder='ejemplo@universidad.edu'
+              autoComplete='off'
               {...form.register('email')}
             />
             {form.formState.errors.email && (
@@ -210,6 +215,7 @@ export function UserFormDialog({
               id='password'
               type='password'
               placeholder={isEditing ? '••••••••' : 'Mínimo 6 caracteres'}
+              autoComplete='new-password'
               {...form.register('password')}
             />
             {form.formState.errors.password && (

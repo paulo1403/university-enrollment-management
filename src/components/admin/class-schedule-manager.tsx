@@ -305,8 +305,10 @@ export function ClassScheduleManager({
                     <FormItem>
                       <FormLabel>Aula</FormLabel>
                       <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value || ''}
+                        onValueChange={(value) =>
+                          field.onChange(value === 'none' ? null : value)
+                        }
+                        defaultValue={field.value || 'none'}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -314,7 +316,9 @@ export function ClassScheduleManager({
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value=''>Sin aula asignada</SelectItem>
+                          <SelectItem value='none'>
+                            Sin aula asignada
+                          </SelectItem>
                           {rooms.map((room) => (
                             <SelectItem key={room.id} value={room.id}>
                               {room.name} (Cap: {room.capacity || 'N/A'})
