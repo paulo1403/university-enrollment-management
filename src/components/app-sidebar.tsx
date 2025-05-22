@@ -34,11 +34,6 @@ import {
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 const data = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg',
-  },
   navMain: [],
   navAdmin: [
     {
