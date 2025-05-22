@@ -23,6 +23,17 @@ import { CourseFormDialog } from './course-form-dialog';
 import { PrerequisitesManager } from './prerequisites-manager';
 import { ClassScheduleManager } from './class-schedule-manager';
 import { CourseModality } from '@prisma/client';
+import {
+  IconEdit,
+  IconTrash,
+  IconListDetails,
+  IconClock,
+  IconUser,
+  IconBook,
+  IconSchool,
+  IconChevronDown,
+  IconDotsVertical,
+} from '@tabler/icons-react';
 
 interface Course {
   id: string;
@@ -143,118 +154,138 @@ export function CourseManagement() {
   };
 
   return (
-    <Card className='w-full'>
-      <CardHeader>
-        <CardTitle>Gestión de Cursos</CardTitle>
-        <CardDescription>
-          Administra los cursos universitarios disponibles
-        </CardDescription>
-        <Button onClick={handleCreateCourse}>Crear Nuevo Curso</Button>
-      </CardHeader>
-      <CardContent>
-        {loading ? (
-          <p>Cargando cursos...</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Código</TableHead>
-                <TableHead>Nombre</TableHead>
-                <TableHead>Créditos</TableHead>
-                <TableHead>Modalidad</TableHead>
-                <TableHead>Profesor</TableHead>
-                <TableHead>Campus</TableHead>
-                <TableHead>Periodo</TableHead>
-                <TableHead>Acciones</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {courses.length === 0 ? (
+    <div className='w-full'>
+      <Card>
+        <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
+          <div>
+            <CardTitle>Gestión de Cursos</CardTitle>
+            <CardDescription>
+              Administra los cursos universitarios disponibles
+            </CardDescription>
+          </div>
+          <Button onClick={handleCreateCourse}>
+            <IconBook className='mr-2 size-4' /> Nuevo Curso
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className='flex justify-center py-4'>Cargando cursos...</div>
+          ) : (
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={8} className='text-center'>
-                    No hay cursos disponibles
-                  </TableCell>
+                  <TableHead>
+                    <IconListDetails className='inline size-4 mr-1' /> Código
+                  </TableHead>
+                  <TableHead>
+                    <IconBook className='inline size-4 mr-1' /> Nombre
+                  </TableHead>
+                  <TableHead>Créditos</TableHead>
+                  <TableHead>
+                    <IconClock className='inline size-4 mr-1' /> Modalidad
+                  </TableHead>
+                  <TableHead>
+                    <IconUser className='inline size-4 mr-1' /> Profesor
+                  </TableHead>
+                  <TableHead>
+                    <IconSchool className='inline size-4 mr-1' /> Campus
+                  </TableHead>
+                  <TableHead>Periodo</TableHead>
+                  <TableHead className='text-right'>Acciones</TableHead>
                 </TableRow>
-              ) : (
-                courses.map((course) => (
-                  <TableRow key={course.id}>
-                    <TableCell>{course.code}</TableCell>
-                    <TableCell>{course.name}</TableCell>
-                    <TableCell>{course.credits}</TableCell>
-                    <TableCell>
-                      <Badge variant='outline'>
-                        {course.modality === 'PRESENCIAL'
-                          ? 'Presencial'
-                          : 'Virtual'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {course.professor?.user.name || 'Sin asignar'}
-                    </TableCell>
-                    <TableCell>{course.campus.name}</TableCell>
-                    <TableCell>{course.academicPeriod.name}</TableCell>
-                    <TableCell className='space-x-2'>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() => handleEditCourse(course)}
-                      >
-                        Editar
-                      </Button>{' '}
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() => handleManagePrerequisites(course.id)}
-                      >
-                        Prerrequisitos
-                      </Button>
-                      <Button
-                        variant='outline'
-                        size='sm'
-                        onClick={() =>
-                          handleManageSchedule(course.id, course.campus.id)
-                        }
-                      >
-                        Horarios
-                      </Button>
-                      <Button
-                        variant='destructive'
-                        size='sm'
-                        onClick={() => handleDeleteCourse(course.id)}
-                      >
-                        Eliminar
-                      </Button>
+              </TableHeader>
+              <TableBody>
+                {courses.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className='text-center'>
+                      No hay cursos disponibles
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : (
+                  courses.map((course) => (
+                    <TableRow key={course.id}>
+                      <TableCell className='font-mono'>{course.code}</TableCell>
+                      <TableCell>{course.name}</TableCell>
+                      <TableCell>{course.credits}</TableCell>
+                      <TableCell>
+                        <Badge variant='outline'>
+                          {course.modality === 'PRESENCIAL'
+                            ? 'Presencial'
+                            : 'Virtual'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {course.professor?.user.name || 'Sin asignar'}
+                      </TableCell>
+                      <TableCell>{course.campus.name}</TableCell>
+                      <TableCell>{course.academicPeriod.name}</TableCell>
+                      <TableCell className='text-right space-x-1'>
+                        <Button
+                          variant='ghost'
+                          size='icon'
+                          aria-label='Editar'
+                          onClick={() => handleEditCourse(course)}
+                        >
+                          <IconEdit className='size-4' />
+                        </Button>
+                        <Button
+                          variant='ghost'
+                          size='icon'
+                          aria-label='Prerrequisitos'
+                          onClick={() => handleManagePrerequisites(course.id)}
+                        >
+                          <IconListDetails className='size-4' />
+                        </Button>
+                        <Button
+                          variant='ghost'
+                          size='icon'
+                          aria-label='Horarios'
+                          onClick={() =>
+                            handleManageSchedule(course.id, course.campus.id)
+                          }
+                        >
+                          <IconClock className='size-4' />
+                        </Button>
+                        <Button
+                          variant='ghost'
+                          size='icon'
+                          aria-label='Eliminar'
+                          onClick={() => handleDeleteCourse(course.id)}
+                        >
+                          <IconTrash className='size-4 text-red-500' />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+        {isFormOpen && (
+          <CourseFormDialog
+            open={isFormOpen}
+            onOpenChange={setIsFormOpen}
+            course={currentCourse}
+            onSave={fetchCourses}
+          />
         )}
-      </CardContent>
-      {isFormOpen && (
-        <CourseFormDialog
-          open={isFormOpen}
-          onOpenChange={setIsFormOpen}
-          course={currentCourse}
-          onSave={fetchCourses}
-        />
-      )}{' '}
-      {isPrerequisitesOpen && prerequisitesCourseId && (
-        <PrerequisitesManager
-          open={isPrerequisitesOpen}
-          onOpenChange={setIsPrerequisitesOpen}
-          courseId={prerequisitesCourseId}
-        />
-      )}
-      {isScheduleOpen && scheduleCourseId && scheduleCampusId && (
-        <ClassScheduleManager
-          open={isScheduleOpen}
-          onOpenChange={setIsScheduleOpen}
-          courseId={scheduleCourseId}
-          campusId={scheduleCampusId}
-        />
-      )}
-    </Card>
+        {isPrerequisitesOpen && prerequisitesCourseId && (
+          <PrerequisitesManager
+            open={isPrerequisitesOpen}
+            onOpenChange={setIsPrerequisitesOpen}
+            courseId={prerequisitesCourseId}
+          />
+        )}
+        {isScheduleOpen && scheduleCourseId && scheduleCampusId && (
+          <ClassScheduleManager
+            open={isScheduleOpen}
+            onOpenChange={setIsScheduleOpen}
+            courseId={scheduleCourseId}
+            campusId={scheduleCampusId}
+          />
+        )}
+      </Card>
+    </div>
   );
 }
