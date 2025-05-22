@@ -1,19 +1,12 @@
 'use client';
 import { AppSidebar } from '@/components/app-sidebar';
-import { ChartAreaInteractive } from '@/components/chart-area-interactive';
-import { DataTable } from '@/components/data-table';
-import { SectionCards } from '@/components/section-cards';
 import { SiteHeader } from '@/components/site-header';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { UserManagement } from '@/components/admin/user-management';
-import { AuditLogViewer } from '@/components/admin/audit-log-viewer';
-import { CourseManagement } from '@/components/admin/course-management';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import data from '../data.json';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export default function AdminDashboard() {
+export default function AdminUsersPage() {
   const router = useRouter();
 
   useEffect(() => {
@@ -44,40 +37,9 @@ export default function AdminDashboard() {
       <AppSidebar variant='inset' />{' '}
       <SidebarInset>
         <SiteHeader />
-        <div className='flex flex-1 flex-col'>
-          <div className='@container/main flex flex-1 flex-col gap-2'>
-            <div className='flex flex-col gap-4 py-4 md:gap-6 md:py-6'>
-              {' '}
-              <div className='px-4 lg:px-6'>
-                <Tabs defaultValue='dashboard' className='w-full'>
-                  <TabsList className='grid w-full grid-cols-4'>
-                    <TabsTrigger value='dashboard'>Dashboard</TabsTrigger>
-                    <TabsTrigger value='users'>Usuarios</TabsTrigger>
-                    <TabsTrigger value='courses'>Cursos</TabsTrigger>
-                    <TabsTrigger value='audit'>Auditoría</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value='dashboard' className='pt-4'>
-                    <SectionCards />
-                    <div className='px-4 lg:px-6 mt-6'>
-                      <ChartAreaInteractive />
-                    </div>
-                    <div className='mt-6'>
-                      <DataTable data={data} />
-                    </div>
-                  </TabsContent>{' '}
-                  <TabsContent value='users' className='pt-4'>
-                    <UserManagement />
-                  </TabsContent>
-                  <TabsContent value='courses' className='pt-4'>
-                    <CourseManagement />
-                  </TabsContent>
-                  <TabsContent value='audit' className='pt-4'>
-                    <AuditLogViewer />
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </div>
-          </div>
+        <div className='flex flex-1 flex-col p-4'>
+          <h1 className='text-2xl font-bold mb-4'>Usuarios</h1>
+          <UserManagement />
         </div>
       </SidebarInset>
     </SidebarProvider>

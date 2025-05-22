@@ -43,28 +43,25 @@ const data = {
   navMain: [
     {
       title: 'Dashboard',
-      url: '#',
+      url: '/dashboard',
       icon: IconDashboard,
     },
+  ],
+  navAdmin: [
     {
-      title: 'Lifecycle',
-      url: '#',
+      title: 'Usuarios',
+      url: '/dashboard/admin',
+      icon: IconUsers,
+    },
+    {
+      title: 'Cursos',
+      url: '/dashboard/admin/courses',
       icon: IconListDetails,
     },
     {
-      title: 'Analytics',
-      url: '#',
-      icon: IconChartBar,
-    },
-    {
-      title: 'Projects',
-      url: '#',
-      icon: IconFolder,
-    },
-    {
-      title: 'Team',
-      url: '#',
-      icon: IconUsers,
+      title: 'Auditoría',
+      url: '/dashboard/admin/audit',
+      icon: IconReport,
     },
   ],
   navClouds: [
@@ -177,6 +174,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
+        <div className='mt-2'>
+          <span className='pl-4 text-xs text-muted-foreground font-semibold tracking-widest uppercase'>
+            Administración
+          </span>
+          <NavMain items={data.navAdmin} />
+        </div>
         <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className='mt-auto' />
       </SidebarContent>
