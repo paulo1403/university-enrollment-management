@@ -22,7 +22,7 @@ async function getAdminId(req: Request): Promise<string | null> {
 // GET: Get a specific course by id
 export async function GET(
   req: Request,
-  { params }: { params: { courseId: string } }
+  context: { params: { courseId: string } }
 ) {
   const adminId = await getAdminId(req);
   if (!adminId) {
@@ -32,7 +32,7 @@ export async function GET(
     );
   }
 
-  const { courseId } = params;
+  const { courseId } = context.params;
 
   try {
     const course = await prisma.course.findUnique({

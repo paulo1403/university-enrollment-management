@@ -29,18 +29,45 @@ export async function GET(req: Request) {
     );
   }
 
-  const logs = await prisma.auditLog.findMany({
-    select: {
-      id: true,
-      userId: true,
-      action: true,
-      entityType: true,
-      entityId: true,
-      timestamp: true,
-    },
-    orderBy: { timestamp: 'desc' },
-    take: 100, // Limit to most recent 100 entries
-  });
+  const { searchParams } = new URL(req.url);
+  const page = parseInt(searchParams.get('page') || '1', 10);
+  const pageSize = Math.min(
+    parseInt(searchParams.get('pageSize') || '50', 10),
+    200
+  );
+  const startDate = searchParams.get('startDate');
+  const endDate = searchParams.get('endDate');
 
-  return NextResponse.json({ logs });
+  const where: any = {};
+  if (startDate || endDate) {
+    where.timestamp = {};
+    if (startDate) where.timestamp.gte = new Date(startDate);
+    if (endDate) where.timestamp.lte = new Date(endDate);
+  }
+
+  const [logs, total] = await Promise.all([
+    prisma.auditLog.findMany({
+      where,
+      select: {
+        id: true,
+        userId: true,
+        action: true,
+        entityType: true,
+        entityId: true,
+        timestamp: true,
+      },
+      orderBy: { timestamp: 'desc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.auditLog.count({ where }),
+  ]);
+
+  return NextResponse.json({
+    logs,
+    page,
+    pageSize,
+    total,
+    totalPages: Math.ceil(total / pageSize),
+  });
 }
