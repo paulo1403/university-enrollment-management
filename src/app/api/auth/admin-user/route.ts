@@ -32,34 +32,51 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const role = searchParams.get('role');
   const search = searchParams.get('search');
+  const page = parseInt(searchParams.get('page') || '1', 10);
+  const pageSize = Math.min(
+    parseInt(searchParams.get('pageSize') || '50', 10),
+    200
+  );
 
   let where: any = {};
   if (role && ['STUDENT', 'PROFESSOR', 'ADMIN'].includes(role)) {
     where.role = role;
   }
+  // Si el role no es válido, no filtrar por rol (ignorar)
   if (search) {
     where.OR = [
-      { name: { contains: search, mode: 'insensitive' } },
-      { email: { contains: search, mode: 'insensitive' } },
+      { name: { contains: search } },
+      { email: { contains: search } },
     ];
   }
 
-  const users = await prisma.user.findMany({
-    where,
-    select: {
-      id: true,
-      email: true,
-      name: true,
-      role: true,
-      twoFactorEnabled: true,
-    },
-    orderBy: { email: 'asc' },
-  });
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({
+      where,
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        twoFactorEnabled: true,
+      },
+      orderBy: { email: 'asc' },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.user.count({ where }),
+  ]);
 
   if (role === 'PROFESSOR') {
-    return NextResponse.json({ professors: users });
+    return NextResponse.json({ professors: users, total });
   }
-  return NextResponse.json({ users });
+  return NextResponse.json({
+    users,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
+  });
 }
 
 // POST: Create a new user (admins only)

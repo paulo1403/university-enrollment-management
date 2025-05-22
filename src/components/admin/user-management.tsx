@@ -20,6 +20,15 @@ import {
 } from '@/components/ui/table';
 import { toast } from 'sonner';
 import { UserFormDialog } from '@/components/admin/user-form-dialog';
+import { Pencil, Trash2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface User {
   id: string;
@@ -34,23 +43,48 @@ export function UserManagement() {
   const [loading, setLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [totalPages, setTotalPages] = useState(1);
+  const [total, setTotal] = useState(0);
+
+  // Debounce para el buscador
+  const [searchInput, setSearchInput] = useState('');
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setSearch(searchInput);
+      setPage(1);
+    }, 400);
+    return () => clearTimeout(handler);
+  }, [searchInput]);
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('/api/auth/admin-user', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: String(pageSize),
       });
-
+      if (roleFilter && roleFilter !== 'all') params.append('role', roleFilter);
+      if (search) params.append('search', search);
+      const response = await fetch(
+        `/api/auth/admin-user?${params.toString()}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
       if (!response.ok) {
         throw new Error('Error al cargar usuarios');
       }
-
       const data = await response.json();
       setUsers(data.users);
+      setTotalPages(data.totalPages || 1);
+      setTotal(data.total || 0);
     } catch (error) {
       console.error(error);
       toast.error('Error al cargar usuarios');
@@ -61,7 +95,8 @@ export function UserManagement() {
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, pageSize, roleFilter, search]);
 
   const handleCreateUser = () => {
     setCurrentUser(null);
@@ -121,6 +156,15 @@ export function UserManagement() {
     }
   };
 
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      search.trim() === '' ||
+      user.name?.toLowerCase().includes(search.toLowerCase()) ||
+      user.email.toLowerCase().includes(search.toLowerCase());
+    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    return matchesSearch && matchesRole;
+  });
+
   return (
     <div className='w-full'>
       <Card>
@@ -135,6 +179,79 @@ export function UserManagement() {
           <Button onClick={handleCreateUser}>Nuevo Usuario</Button>
         </CardHeader>
         <CardContent>
+          <div className='flex flex-wrap gap-4 mb-4 items-end'>
+            <div>
+              <Input
+                type='text'
+                placeholder='Buscar por nombre o email'
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className='min-w-[200px]'
+              />
+            </div>
+            <div>
+              <label className='block text-xs font-medium mb-1'>Rol</label>
+              <Select
+                value={roleFilter}
+                onValueChange={(value) => {
+                  setRoleFilter(value);
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger className='min-w-[120px]'>
+                  <SelectValue placeholder='Todos' />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value='all'>Todos</SelectItem>
+                  <SelectItem value='ADMIN'>Admin</SelectItem>
+                  <SelectItem value='PROFESSOR'>Profesor</SelectItem>
+                  <SelectItem value='STUDENT'>Estudiante</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className='block text-xs font-medium mb-1'>
+                Por página
+              </label>
+              <Select
+                value={String(pageSize)}
+                onValueChange={(value) => {
+                  setPageSize(Number(value));
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger className='min-w-[100px]'>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {[25, 50, 100, 200].map((size) => (
+                    <SelectItem key={size} value={String(size)}>
+                      {size}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className='ml-auto flex gap-2 items-center'>
+              <button
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page === 1 || loading}
+                className='px-2 py-1 border rounded disabled:opacity-50'
+              >
+                Anterior
+              </button>
+              <span className='text-xs'>
+                Página {page} de {totalPages}
+              </span>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page === totalPages || loading}
+                className='px-2 py-1 border rounded disabled:opacity-50'
+              >
+                Siguiente
+              </button>
+            </div>
+          </div>
           {loading ? (
             <div className='flex justify-center py-4'>Cargando usuarios...</div>
           ) : (
@@ -170,21 +287,24 @@ export function UserManagement() {
                       <TableCell>
                         {user.twoFactorEnabled ? 'Activado' : 'Desactivado'}
                       </TableCell>
-                      <TableCell className='text-right'>
+                      <TableCell className='text-right flex gap-2 justify-end'>
                         <Button
-                          variant='outline'
-                          size='sm'
-                          className='mr-2'
+                          variant='ghost'
+                          size='icon'
                           onClick={() => handleEditUser(user)}
+                          title='Editar'
+                          aria-label='Editar usuario'
                         >
-                          Editar
+                          <Pencil className='w-4 h-4' />
                         </Button>
                         <Button
-                          variant='destructive'
-                          size='sm'
+                          variant='ghost'
+                          size='icon'
                           onClick={() => handleDeleteUser(user.id)}
+                          title='Eliminar'
+                          aria-label='Eliminar usuario'
                         >
-                          Eliminar
+                          <Trash2 className='w-4 h-4 text-red-500' />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -193,6 +313,9 @@ export function UserManagement() {
               </TableBody>
             </Table>
           )}
+          <div className='mt-2 text-xs text-gray-500'>
+            Mostrando {users.length} de {total} usuarios.
+          </div>
         </CardContent>
       </Card>
 
