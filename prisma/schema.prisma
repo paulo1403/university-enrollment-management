@@ -135,6 +135,8 @@ model Room {
   name       String
   capacity   Int?
   classTimes ClassTime[]
+
+  @@unique([name, campusId])
 }
 
 model Grade {

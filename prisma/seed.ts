@@ -124,6 +124,22 @@ async function main() {
       create: { userId: student.id },
     });
   }
+
+  // Crear aulas de ejemplo para cada campus
+  const allCampuses = await prisma.campus.findMany();
+  for (const campus of allCampuses) {
+    for (let i = 1; i <= 5; i++) {
+      await prisma.room.upsert({
+        where: { name_campusId: { name: `Aula ${i}`, campusId: campus.id } },
+        update: {},
+        create: {
+          name: `Aula ${i}`,
+          capacity: 30 + i * 5,
+          campusId: campus.id,
+        },
+      });
+    }
+  }
 }
 
 main()
