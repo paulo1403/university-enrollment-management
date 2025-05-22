@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import {
   Form,
@@ -31,6 +32,21 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { CourseModality } from '@prisma/client';
+import { ChevronsUpDown, Check } from 'lucide-react';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command';
+import { cn } from '@/lib/utils';
 
 interface Professor {
   userId: string;
@@ -100,6 +116,9 @@ export function CourseFormDialog({
   const [campuses, setCampuses] = useState<Campus[]>([]);
   const [academicPeriods, setAcademicPeriods] = useState<AcademicPeriod[]>([]);
   const [loading, setLoading] = useState(false);
+  const [professorQuery, setProfessorQuery] = useState('');
+  const [professorOptions, setProfessorOptions] = useState<Professor[]>([]);
+  const [openProfessor, setOpenProfessor] = useState(false);
   const form = useForm<CourseFormValues>({
     resolver: zodResolver(courseFormSchema),
     defaultValues: {
@@ -132,7 +151,12 @@ export function CourseFormDialog({
         );
         if (professorResponse.ok) {
           const data = await professorResponse.json();
-          setProfessors(data.professors || []);
+          const mapped = (data.professors || []).map((u: any) => ({
+            userId: u.id,
+            user: { name: u.name, email: u.email },
+          }));
+          setProfessors(mapped);
+          setProfessorOptions(mapped);
         }
 
         // Fetch campuses
@@ -160,6 +184,32 @@ export function CourseFormDialog({
 
     fetchData();
   }, []);
+
+  // Fetch profesores según búsqueda
+  useEffect(() => {
+    if (professorQuery.length === 0) {
+      setProfessorOptions(professors);
+      return;
+    }
+    const fetchFiltered = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const headers = { Authorization: `Bearer ${token}` };
+        const res = await fetch(
+          `/api/auth/admin-user?role=PROFESSOR&search=${encodeURIComponent(
+            professorQuery
+          )}`,
+          { headers }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setProfessorOptions(data.professors || []);
+        }
+      } catch {}
+    };
+    fetchFiltered();
+  }, [professorQuery, professors]);
+
   const onSubmit = async (values: CourseFormValues) => {
     setLoading(true);
     try {
@@ -205,6 +255,10 @@ export function CourseFormDialog({
           <DialogTitle>
             {course ? 'Editar Curso' : 'Crear Nuevo Curso'}
           </DialogTitle>
+          <DialogDescription>
+            Completa los campos para {course ? 'editar' : 'crear'} un curso
+            universitario.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -300,7 +354,7 @@ export function CourseFormDialog({
                       defaultValue={field.value || 'PRESENCIAL'}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className='w-full'>
                           <SelectValue placeholder='Seleccionar modalidad' />
                         </SelectTrigger>
                       </FormControl>
@@ -316,35 +370,98 @@ export function CourseFormDialog({
               <FormField
                 control={form.control}
                 name='professorId'
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Profesor</FormLabel>
-                    <Select
-                      onValueChange={(value) =>
-                        field.onChange(value === 'none' ? null : value)
-                      }
-                      defaultValue={field.value || 'none'}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder='Seleccionar profesor' />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value='none'>Sin asignar</SelectItem>
-                        {professors.map((professor) => (
-                          <SelectItem
-                            key={professor.userId}
-                            value={professor.userId}
+                render={({ field }) => {
+                  const selected = professors.find(
+                    (p) => p.userId === field.value
+                  );
+                  return (
+                    <FormItem>
+                      <FormLabel>Profesor</FormLabel>
+                      <Popover
+                        open={openProfessor}
+                        onOpenChange={setOpenProfessor}
+                      >
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant='outline'
+                            role='combobox'
+                            aria-expanded={openProfessor}
+                            className='w-full justify-between'
                           >
-                            {professor.user.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                            {selected ? (
+                              <>
+                                {selected.user.name}{' '}
+                                <span className='text-xs text-gray-400'>
+                                  ({selected.user.email})
+                                </span>
+                              </>
+                            ) : (
+                              'Seleccionar profesor...'
+                            )}
+                            <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className='w-full p-0'>
+                          <Command>
+                            <CommandInput
+                              placeholder='Buscar profesor...'
+                              value={professorQuery}
+                              onValueChange={setProfessorQuery}
+                            />
+                            <CommandList>
+                              <CommandEmpty>
+                                No se encontró profesor.
+                              </CommandEmpty>
+                              <CommandGroup>
+                                <CommandItem
+                                  value='none'
+                                  onSelect={() => {
+                                    field.onChange('none');
+                                    setOpenProfessor(false);
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      'mr-2 h-4 w-4',
+                                      field.value === 'none'
+                                        ? 'opacity-100'
+                                        : 'opacity-0'
+                                    )}
+                                  />
+                                  Sin asignar
+                                </CommandItem>
+                                {professorOptions.map((prof) => (
+                                  <CommandItem
+                                    key={prof.userId}
+                                    value={prof.userId}
+                                    onSelect={() => {
+                                      field.onChange(prof.userId);
+                                      setOpenProfessor(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        'mr-2 h-4 w-4',
+                                        field.value === prof.userId
+                                          ? 'opacity-100'
+                                          : 'opacity-0'
+                                      )}
+                                    />
+                                    {prof.user.name}{' '}
+                                    <span className='text-xs text-gray-400'>
+                                      ({prof.user.email})
+                                    </span>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
             </div>
 
@@ -361,7 +478,7 @@ export function CourseFormDialog({
                       defaultValue={field.value || ''}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className='w-full'>
                           <SelectValue placeholder='Seleccionar campus' />
                         </SelectTrigger>
                       </FormControl>
@@ -388,7 +505,7 @@ export function CourseFormDialog({
                       defaultValue={field.value || ''}
                     >
                       <FormControl>
-                        <SelectTrigger>
+                        <SelectTrigger className='w-full'>
                           <SelectValue placeholder='Seleccionar periodo' />
                         </SelectTrigger>
                       </FormControl>

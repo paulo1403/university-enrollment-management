@@ -29,7 +29,23 @@ export async function GET(req: Request) {
       { status: 403 }
     );
   }
+  const { searchParams } = new URL(req.url);
+  const role = searchParams.get('role');
+  const search = searchParams.get('search');
+
+  let where: any = {};
+  if (role && ['STUDENT', 'PROFESSOR', 'ADMIN'].includes(role)) {
+    where.role = role;
+  }
+  if (search) {
+    where.OR = [
+      { name: { contains: search, mode: 'insensitive' } },
+      { email: { contains: search, mode: 'insensitive' } },
+    ];
+  }
+
   const users = await prisma.user.findMany({
+    where,
     select: {
       id: true,
       email: true,
@@ -39,6 +55,10 @@ export async function GET(req: Request) {
     },
     orderBy: { email: 'asc' },
   });
+
+  if (role === 'PROFESSOR') {
+    return NextResponse.json({ professors: users });
+  }
   return NextResponse.json({ users });
 }
 
@@ -72,6 +92,13 @@ export async function POST(req: Request) {
   const user = await prisma.user.create({
     data: { email, password: hashed, name, role },
   });
+
+  if (role === 'PROFESSOR') {
+    await prisma.professor.create({ data: { userId: user.id } });
+  } else if (role === 'STUDENT') {
+    await prisma.student.create({ data: { userId: user.id } });
+  }
+
   // Audit log
   await prisma.auditLog.create({
     data: {
