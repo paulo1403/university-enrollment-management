@@ -32,9 +32,33 @@ The University Enrollment Management System is a modern, full-stack web applicat
     * **Campus Assignment:** Courses linked to specific university campuses.
     * **Prerequisite System:** Enforce dependencies between courses for enrollment.
     * **Class Scheduling:** Define specific class times (day, start/end time, room).
+    * **Professor Assignment:** Professors are assigned to courses using a scalable, searchable combobox UI. Professors must exist as both users and in the Professor table.
+    * **Room Assignment:** Assign rooms (aulas) to class schedules. Rooms are managed per campus and can be created/edited by admins.
+* **Room (Aula) Management:**
+    * CRUD interface for managing rooms per campus.
+    * Each room is unique per campus (name + campus).
+    * Example rooms are seeded for each campus.
 * **Academic Periods:** Organize courses and enrollments by academic semesters or terms.
 * **Financial Management:** Basic system for student account balances and payments.
 * **Audit Logging:** Track significant system actions for security and compliance.
+
+## Recent Improvements
+
+- **Campus and Academic Period Selection:** Course creation now requires selecting a campus and academic period.
+- **Scalable Professor Selection:** Professor assignment uses a searchable combobox for large datasets.
+- **Robust Professor Assignment:** Professors must exist as both users and in the Professor table. The backend and seed script ensure this.
+- **Room (Aula) Management:**
+    - Admins can manage rooms per campus.
+    - Rooms are assigned to class schedules.
+    - Example rooms are seeded for each campus.
+- **Seed Script Enhancements:**
+    - All users with PROFESSOR or STUDENT roles are ensured to have corresponding Professor/Student records.
+    - Example campuses, academic periods, and rooms are seeded.
+    - Seed script is idempotent and safe to rerun.
+- **Accessibility:** Improved accessibility in course forms (e.g., `DialogDescription`).
+- **Bug Fixes:**
+    - Fixed professor assignment errors ("Professor not found").
+    - Fixed room assignment issues (rooms now seeded and unique per campus).
 
 ## Technology Stack
 
@@ -55,6 +79,52 @@ The University Enrollment Management System is a modern, full-stack web applicat
     * **Prisma:** Modern ORM for seamless database interaction.
     * **SQLite (Development):** Lightweight file-based database for local development and rapid prototyping.
     * **PostgreSQL / MySQL (Production):** Robust relational databases for production environments.
+
+## Database & Seed Script Usage
+
+### Running Migrations
+
+After updating the Prisma schema (e.g., adding unique constraints), run:
+
+```bash
+npx prisma migrate dev --name <migration_name>
+```
+
+### Seeding the Database
+
+The seed script will populate the database with example data, including campuses, academic periods, users, professors, students, and rooms. It also ensures all users with PROFESSOR or STUDENT roles have corresponding records in the Professor or Student tables.
+
+To run the seed script:
+
+```bash
+npx tsx prisma/seed.ts
+```
+
+> **Note:** If you encounter an error about unknown file extension `.ts`, install `ts-node` and `typescript`:
+>
+> ```bash
+> npm install --save-dev ts-node typescript
+> ```
+>
+> Or, add a script to your `package.json`:
+>
+> ```json
+> "scripts": {
+>   "seed": "ts-node prisma/seed.ts"
+> }
+> ```
+> Then run:
+> ```bash
+> npm run seed
+> ```
+
+### What the Seed Script Does
+
+- Creates example campuses and academic periods.
+- Creates users for all roles (admin, professor, student).
+- Ensures all professors and students have corresponding records in the Professor/Student tables.
+- Creates example rooms for each campus (rooms are unique per campus).
+- Can be safely rerun; it will upsert (update or insert) records as needed.
 
 ## Getting Started
 
